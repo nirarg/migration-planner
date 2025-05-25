@@ -23,7 +23,7 @@ require (
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/onsi/ginkgo/v2 v2.15.0
 	github.com/onsi/gomega v1.32.0
-	github.com/openshift/assisted-image-service v0.0.0-20240827125623-ad5c4b36a817
+	github.com/openshift/assisted-image-service 0ef3ec7377e5
 	github.com/pkg/errors v0.9.1
 	github.com/pressly/goose/v3 v3.0.0-00010101000000-000000000000
 	github.com/prometheus/client_golang v1.20.5
