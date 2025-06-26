@@ -293,3 +293,84 @@ func WithDefaultInventory() SourceFilterFunc {
 		s.IncludeDefault = true
 	}
 }
+
+func (h *ServiceHandler) CreateOrGetShareLink(ctx context.Context, request server.CreateOrGetShareLinkRequestObject) (server.CreateOrGetShareLinkResponseObject, error) {
+	source, err := h.store.Source().Get(ctx, request.Id)
+	if err != nil {
+		return server.CreateOrGetShareLink404JSONResponse{}, nil
+	}
+
+	user := auth.MustHaveUser(ctx)
+	if user.Organization != source.OrgID {
+		return server.CreateOrGetShareLink403JSONResponse{}, nil
+	}
+
+	// Check if source already has a share token
+	var token string
+	if source.ShareToken != nil && *source.ShareToken != "" {
+		token = *source.ShareToken
+	} else {
+		// Generate new share token
+		newToken, err := util.GenerateShareToken()
+		if err != nil {
+			return server.CreateOrGetShareLink500JSONResponse{}, nil
+		}
+
+		// Update source with new token
+		_, err = h.store.Source().UpdateShareToken(ctx, request.Id, &newToken)
+		if err != nil {
+			return server.CreateOrGetShareLink500JSONResponse{}, nil
+		}
+		token = newToken
+	}
+
+	// Construct the share URL
+	baseURL := util.GetEnv("MIGRATION_PLANNER_BASE_URL", "http://localhost:11443")
+	shareURL := fmt.Sprintf("%s/api/v1/shared/%s", baseURL, token)
+
+	return server.CreateOrGetShareLink200JSONResponse{
+		Token: token,
+		Url:   shareURL,
+	}, nil
+}
+
+func (h *ServiceHandler) DeleteShareLink(ctx context.Context, request server.DeleteShareLinkRequestObject) (server.DeleteShareLinkResponseObject, error) {
+	source, err := h.store.Source().Get(ctx, request.Id)
+	if err != nil {
+		return server.DeleteShareLink404JSONResponse{}, nil
+	}
+
+	user := auth.MustHaveUser(ctx)
+	if user.Organization != source.OrgID {
+		return server.DeleteShareLink403JSONResponse{}, nil
+	}
+
+	// Remove the share token by setting it to nil
+	_, err = h.store.Source().UpdateShareToken(ctx, request.Id, nil)
+	if err != nil {
+		return server.DeleteShareLink500JSONResponse{}, nil
+	}
+
+	return server.DeleteShareLink200JSONResponse{
+		Message: util.StringPtr("Share link deleted successfully"),
+	}, nil
+}
+
+func (h *ServiceHandler) GetSharedInventory(ctx context.Context, request server.GetSharedInventoryRequestObject) (server.GetSharedInventoryResponseObject, error) {
+	source, err := h.store.Source().GetByShareToken(ctx, request.Token)
+	if err != nil {
+		return server.GetSharedInventory404JSONResponse{}, nil
+	}
+
+	if source.Inventory == nil {
+		return server.GetSharedInventory404JSONResponse{}, nil
+	}
+
+	return server.GetSharedInventory200JSONResponse{
+		Id:        source.ID,
+		Name:      source.Name,
+		Inventory: source.Inventory.Data,
+		CreatedAt: source.CreatedAt,
+		UpdatedAt: source.UpdatedAt,
+	}, nil
+}

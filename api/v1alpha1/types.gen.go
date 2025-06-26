@@ -126,6 +126,28 @@ type Network struct {
 // NetworkType defines model for Network.Type.
 type NetworkType string
 
+// ShareLink defines model for ShareLink.
+type ShareLink struct {
+	// Token Share token for accessing the inventory
+	Token string `json:"token"`
+
+	// Url Complete share URL
+	Url string `json:"url"`
+}
+
+// SharedInventory defines model for SharedInventory.
+type SharedInventory struct {
+	CreatedAt time.Time `json:"createdAt"`
+
+	// Id Source ID
+	Id        openapi_types.UUID `json:"id"`
+	Inventory Inventory          `json:"inventory"`
+
+	// Name Source name
+	Name      string    `json:"name"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
 // Source defines model for Source.
 type Source struct {
 	Agent      *Agent             `json:"agent,omitempty"`

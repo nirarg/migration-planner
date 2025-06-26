@@ -23,6 +23,7 @@ type Source struct {
 	OrgID      string                    `gorm:"uniqueIndex:name_org_id;not null"`
 	Inventory  *JSONField[api.Inventory] `gorm:"type:jsonb"`
 	OnPremises bool
+	ShareToken *string    `gorm:"column:share_token;type:VARCHAR;size:64;unique"`
 	Agents     []Agent    `gorm:"constraint:OnDelete:CASCADE;"`
 	ImageInfra ImageInfra `gorm:"constraint:OnDelete:CASCADE;"`
 	Labels     []Label

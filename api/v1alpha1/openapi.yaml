@@ -324,6 +324,145 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /api/v1/sources/{id}/share:
+    post:
+      tags:
+        - source
+      description: Create or get existing share link for a source
+      operationId: createOrGetShareLink
+      parameters:
+        - name: id
+          in: path
+          description: ID of the source
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Share link created or retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareLink'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: NotFound
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - source
+      description: Delete existing share link for a source
+      operationId: deleteShareLink
+      parameters:
+        - name: id
+          in: path
+          description: ID of the source
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Share link deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: NotFound
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/shared/{token}:
+    get:
+      tags:
+        - source
+      description: Get inventory using share token
+      operationId: getSharedInventory
+      parameters:
+        - name: token
+          in: path
+          description: Share token
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Shared inventory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedInventory'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "404":
+          description: NotFound
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /api/v1/sources/{id}/image-url:
     get:
       tags:
@@ -791,3 +930,41 @@ components:
       required:
         - key
         - value
+
+    ShareLink:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Share token for accessing the inventory
+        url:
+          type: string
+          description: Complete share URL
+      required:
+        - token
+        - url
+
+    SharedInventory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Source ID
+        name:
+          type: string
+          description: Source name
+        inventory:
+          $ref: '#/components/schemas/Inventory'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - inventory
+        - createdAt
+        - updatedAt

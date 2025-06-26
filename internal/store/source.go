@@ -22,6 +22,8 @@ type Source interface {
 	Get(ctx context.Context, id uuid.UUID) (*model.Source, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	Update(ctx context.Context, source model.Source) (*model.Source, error)
+	GetByShareToken(ctx context.Context, token string) (*model.Source, error)
+	UpdateShareToken(ctx context.Context, id uuid.UUID, token *string) (*model.Source, error)
 }
 
 type SourceStore struct {
@@ -95,6 +97,29 @@ func (s *SourceStore) Update(ctx context.Context, source model.Source) (*model.S
 	}
 
 	return &source, nil
+}
+
+func (s *SourceStore) GetByShareToken(ctx context.Context, token string) (*model.Source, error) {
+	var source model.Source
+	result := s.getDB(ctx).Preload("Agents").Preload("ImageInfra").Preload("Labels").Where("share_token = ?", token).First(&source)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrRecordNotFound
+		}
+		return nil, result.Error
+	}
+	return &source, nil
+}
+
+func (s *SourceStore) UpdateShareToken(ctx context.Context, id uuid.UUID, token *string) (*model.Source, error) {
+	source := model.Source{ID: id}
+	result := s.getDB(ctx).Model(&source).Clauses(clause.Returning{}).Updates(map[string]interface{}{"share_token": token})
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	// Get the full source with all preloads
+	return s.Get(ctx, id)
 }
 
 func (s *SourceStore) getDB(ctx context.Context) *gorm.DB {
