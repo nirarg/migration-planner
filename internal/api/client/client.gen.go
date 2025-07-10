@@ -140,9 +140,6 @@ type ClientInterface interface {
 
 	// UploadRvtoolsFileWithBody request with any body
 	UploadRvtoolsFileWithBody(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// Health request
-	Health(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) ListAssessments(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -351,18 +348,6 @@ func (c *Client) UpdateInventory(ctx context.Context, id openapi_types.UUID, bod
 
 func (c *Client) UploadRvtoolsFileWithBody(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUploadRvtoolsFileRequestWithBody(c.Server, id, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) Health(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewHealthRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -890,33 +875,6 @@ func NewUploadRvtoolsFileRequestWithBody(server string, id openapi_types.UUID, c
 	return req, nil
 }
 
-// NewHealthRequest generates requests for Health
-func NewHealthRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/health")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -1009,9 +967,6 @@ type ClientWithResponsesInterface interface {
 
 	// UploadRvtoolsFileWithBodyWithResponse request with any body
 	UploadRvtoolsFileWithBodyWithResponse(ctx context.Context, id openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UploadRvtoolsFileResponse, error)
-
-	// HealthWithResponse request
-	HealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*HealthResponse, error)
 }
 
 type ListAssessmentsResponse struct {
@@ -1373,27 +1328,6 @@ func (r UploadRvtoolsFileResponse) StatusCode() int {
 	return 0
 }
 
-type HealthResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r HealthResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r HealthResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 // ListAssessmentsWithResponse request returning *ListAssessmentsResponse
 func (c *ClientWithResponses) ListAssessmentsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ListAssessmentsResponse, error) {
 	rsp, err := c.ListAssessments(ctx, reqEditors...)
@@ -1550,15 +1484,6 @@ func (c *ClientWithResponses) UploadRvtoolsFileWithBodyWithResponse(ctx context.
 		return nil, err
 	}
 	return ParseUploadRvtoolsFileResponse(rsp)
-}
-
-// HealthWithResponse request returning *HealthResponse
-func (c *ClientWithResponses) HealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*HealthResponse, error) {
-	rsp, err := c.Health(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseHealthResponse(rsp)
 }
 
 // ParseListAssessmentsResponse parses an HTTP response from a ListAssessmentsWithResponse call
@@ -2262,22 +2187,6 @@ func ParseUploadRvtoolsFileResponse(rsp *http.Response) (*UploadRvtoolsFileRespo
 		}
 		response.JSON500 = &dest
 
-	}
-
-	return response, nil
-}
-
-// ParseHealthResponse parses an HTTP response from a HealthWithResponse call
-func ParseHealthResponse(rsp *http.Response) (*HealthResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &HealthResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
 	}
 
 	return response, nil

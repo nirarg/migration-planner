@@ -16,6 +16,7 @@ type Store interface {
 	ImageInfra() ImageInfra
 	PrivateKey() PrivateKey
 	Label() Label
+	ShareToken() ShareToken
 	Seed() error
 	Statistics(ctx context.Context) (model.InventoryStats, error)
 	Close() error
@@ -28,6 +29,7 @@ type DataStore struct {
 	imageInfra ImageInfra
 	privateKey PrivateKey
 	label      Label
+	shareToken ShareToken
 }
 
 func NewStore(db *gorm.DB) Store {
@@ -37,6 +39,7 @@ func NewStore(db *gorm.DB) Store {
 		imageInfra: NewImageInfraStore(db),
 		privateKey: NewCacheKeyStore(NewPrivateKey(db)),
 		label:      NewLabelStore(db),
+		shareToken: NewShareTokenStore(db),
 		db:         db,
 	}
 }
@@ -55,6 +58,10 @@ func (s *DataStore) Agent() Agent {
 
 func (s *DataStore) PrivateKey() PrivateKey {
 	return s.privateKey
+}
+
+func (s *DataStore) ShareToken() ShareToken {
+	return s.shareToken
 }
 
 func (s *DataStore) ImageInfra() ImageInfra {
