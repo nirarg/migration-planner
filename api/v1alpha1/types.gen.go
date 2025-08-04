@@ -147,8 +147,8 @@ type NetworkType string
 
 // ShareToken defines model for ShareToken.
 type ShareToken struct {
-	SourceId openapi_types.UUID `json:"source_id"`
-	Token    string             `json:"token"`
+	AssessmentId openapi_types.UUID `json:"assessment_id"`
+	Token        string             `json:"token"`
 }
 
 // ShareTokenList defines model for ShareTokenList.
