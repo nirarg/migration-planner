@@ -435,7 +435,7 @@ var _ = Describe("source handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			newName := "updated-name"
 			newLabels := []v1alpha1.Label{
 				{Key: "env", Value: "prod"},
@@ -504,7 +504,7 @@ TZUUZpsP4or19B48WSqiV/eMdCB/PxnFZYT1SyFLlDBiXolb+30HbGeeaF0bEg+u
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.UpdateSource(ctx, server.UpdateSourceRequestObject{
 				Id:   uuid.New(),
 				Body: &v1alpha1.SourceUpdate{},
@@ -524,7 +524,7 @@ TZUUZpsP4or19B48WSqiV/eMdCB/PxnFZYT1SyFLlDBiXolb+30HbGeeaF0bEg+u
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.UpdateSource(ctx, server.UpdateSourceRequestObject{
 				Id:   uuid.MustParse(sourceID),
 				Body: &v1alpha1.SourceUpdate{},
@@ -551,7 +551,7 @@ TZUUZpsP4or19B48WSqiV/eMdCB/PxnFZYT1SyFLlDBiXolb+30HbGeeaF0bEg+u
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 
 			// First set initial labels
 			initialLabels := []v1alpha1.Label{
@@ -647,7 +647,7 @@ TZUUZpsP4or19B48WSqiV/eMdCB/PxnFZYT1SyFLlDBiXolb+30HbGeeaF0bEg+u
 			Expect(count).To(Equal(1))
 
 			// Delete the source via service
-			srv := service.NewSourceService(s)
+			srv := service.NewSourceService(s, nil)
 			err := srv.DeleteSource(context.TODO(), sourceID)
 			Expect(err).To(BeNil())
 
@@ -687,7 +687,7 @@ TZUUZpsP4or19B48WSqiV/eMdCB/PxnFZYT1SyFLlDBiXolb+30HbGeeaF0bEg+u
 			Expect(count).To(Equal(2))
 
 			// Delete all sources via service
-			srv := service.NewSourceService(s)
+			srv := service.NewSourceService(s, nil)
 			err := srv.DeleteSources(context.TODO())
 			Expect(err).To(BeNil())
 
@@ -723,7 +723,7 @@ TZUUZpsP4or19B48WSqiV/eMdCB/PxnFZYT1SyFLlDBiXolb+30HbGeeaF0bEg+u
 			Expect(count).To(Equal(0))
 
 			// Delete the source via service
-			srv := service.NewSourceService(s)
+			srv := service.NewSourceService(s, nil)
 			err := srv.DeleteSource(context.TODO(), sourceID)
 			Expect(err).To(BeNil())
 

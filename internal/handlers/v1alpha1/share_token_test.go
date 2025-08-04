@@ -55,7 +55,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.CreateShareToken(ctx, server.CreateShareTokenRequestObject{Id: sourceID})
 
 			Expect(err).To(BeNil())
@@ -84,7 +84,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.CreateShareToken(ctx, server.CreateShareTokenRequestObject{Id: sourceID})
 
 			Expect(err).To(BeNil())
@@ -104,7 +104,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.CreateShareToken(ctx, server.CreateShareTokenRequestObject{Id: nonExistentSourceID})
 
 			Expect(err).To(BeNil())
@@ -123,7 +123,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.CreateShareToken(ctx, server.CreateShareTokenRequestObject{Id: sourceID})
 
 			Expect(err).To(BeNil())
@@ -142,7 +142,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.CreateShareToken(ctx, server.CreateShareTokenRequestObject{Id: sourceID})
 
 			Expect(err).To(BeNil())
@@ -175,7 +175,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.DeleteShareToken(ctx, server.DeleteShareTokenRequestObject{Id: sourceID})
 
 			Expect(err).To(BeNil())
@@ -198,7 +198,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.DeleteShareToken(ctx, server.DeleteShareTokenRequestObject{Id: sourceID})
 
 			Expect(err).To(BeNil())
@@ -215,7 +215,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.DeleteShareToken(ctx, server.DeleteShareTokenRequestObject{Id: nonExistentSourceID})
 
 			Expect(err).To(BeNil())
@@ -240,7 +240,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.DeleteShareToken(ctx, server.DeleteShareTokenRequestObject{Id: sourceID})
 
 			Expect(err).To(BeNil())
@@ -274,7 +274,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			// No authentication context needed for public endpoint
 			ctx := context.TODO()
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.GetSharedSource(ctx, server.GetSharedSourceRequestObject{Token: tokenValue})
 
 			Expect(err).To(BeNil())
@@ -291,7 +291,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			// No authentication context needed for public endpoint
 			ctx := context.TODO()
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.GetSharedSource(ctx, server.GetSharedSourceRequestObject{Token: invalidToken})
 
 			Expect(err).To(BeNil())
@@ -304,7 +304,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			// No authentication context needed for public endpoint
 			ctx := context.TODO()
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.GetSharedSource(ctx, server.GetSharedSourceRequestObject{Token: emptyToken})
 
 			Expect(err).To(BeNil())
@@ -329,7 +329,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			// No authentication context needed for public endpoint
 			ctx := context.TODO()
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.GetSharedSource(ctx, server.GetSharedSourceRequestObject{Token: tokenValue})
 
 			Expect(err).To(BeNil())
@@ -351,7 +351,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			// No authentication context needed - this is the point of share tokens
 			ctx := context.TODO()
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.GetSharedSource(ctx, server.GetSharedSourceRequestObject{Token: tokenValue})
 
 			Expect(err).To(BeNil())
@@ -386,7 +386,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 
 			// Create tokens for both sources
 			resp1, err1 := srv.CreateShareToken(ctx, server.CreateShareTokenRequestObject{Id: sourceID1})
@@ -425,7 +425,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 
 			// Create token multiple times - should return the same token
 			resp1, err1 := srv.CreateShareToken(ctx, server.CreateShareTokenRequestObject{Id: sourceID})
@@ -475,7 +475,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.GetShareToken(ctx, server.GetShareTokenRequestObject{Id: sourceID})
 
 			Expect(err).To(BeNil())
@@ -496,7 +496,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.GetShareToken(ctx, server.GetShareTokenRequestObject{Id: nonExistentSourceID})
 
 			Expect(err).To(BeNil())
@@ -515,7 +515,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.GetShareToken(ctx, server.GetShareTokenRequestObject{Id: sourceID})
 
 			Expect(err).To(BeNil())
@@ -538,7 +538,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.GetShareToken(ctx, server.GetShareTokenRequestObject{Id: sourceID})
 
 			Expect(err).To(BeNil())
@@ -576,7 +576,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.ListShareTokens(ctx, server.ListShareTokensRequestObject{})
 
 			Expect(err).To(BeNil())
@@ -602,7 +602,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.ListShareTokens(ctx, server.ListShareTokensRequestObject{})
 
 			Expect(err).To(BeNil())
@@ -640,7 +640,7 @@ var _ = Describe("share token handler", Ordered, func() {
 			}
 			ctx := auth.NewTokenContext(context.TODO(), user)
 
-			srv := handlers.NewServiceHandler(service.NewSourceService(s), service.NewShareTokenService(s))
+			srv := handlers.NewServiceHandler(service.NewSourceService(s, nil), service.NewShareTokenService(s))
 			resp, err := srv.ListShareTokens(ctx, server.ListShareTokensRequestObject{})
 
 			Expect(err).To(BeNil())
