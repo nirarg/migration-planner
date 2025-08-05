@@ -77,8 +77,8 @@ func AgentToApi(a model.Agent) api.Agent {
 
 func ShareTokenToApi(s model.ShareToken) api.ShareToken {
 	return api.ShareToken{
-		SourceId: s.SourceID,
-		Token:    s.Token,
+		AssessmentId: s.SourceID,
+		Token:        s.Token,
 	}
 }
 
@@ -88,4 +88,48 @@ func ShareTokenListToApi(shareTokens []model.ShareToken) api.ShareTokenList {
 		result[i] = ShareTokenToApi(shareToken)
 	}
 	return result
+}
+
+func AssessmentToApi(a model.Assessment) api.Source {
+	assessment := api.Assessment{
+		CreatedAt: nil,
+		Id:        nil,
+		Name:      nil,
+		SourceID:  nil,
+	}
+
+	if s.Inventory != nil {
+		source.Inventory = &s.Inventory.Data
+	}
+
+	if len(s.Labels) > 0 {
+		labels := make([]api.Label, 0, len(s.Labels))
+		for _, label := range s.Labels {
+			labels = append(labels, api.Label{Key: label.Key, Value: label.Value})
+		}
+		source.Labels = &labels
+	}
+
+	// We are mapping only the first agent based on created_at timestamp and ignore the rest for now.
+	// TODO:
+	// Remark: If multiple agents are deployed, we pass only the first one based on created_at timestamp
+	// while other agents in up-to-date states exists.
+	// Which one should be presented in the API response?
+	if len(s.Agents) == 0 {
+		return source
+	}
+
+	slices.SortFunc(s.Agents, func(a model.Agent, b model.Agent) int {
+		if a.CreatedAt.Before(b.CreatedAt) {
+			return -1
+		}
+		if a.CreatedAt.After(b.CreatedAt) {
+			return 1
+		}
+		return 0
+	})
+	agent := AgentToApi(s.Agents[0])
+	source.Agent = &agent
+
+	return source
 }
