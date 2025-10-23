@@ -7,8 +7,6 @@ on:
 
 jobs:
   sync_to_side_branches:
-    # Only run this job if the pull request was merged
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     permissions:
