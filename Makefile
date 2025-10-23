@@ -387,4 +387,4 @@ include deploy/e2e.mk
 # Failure/alert       ❌     An error or failure occurred
 # Deploy operations   🚀     Launching or bringing up environments/services
 # Teardown/cleanup    🗑️     Stopping, removing, or cleaning up resources
-################################################################################
+#################################################################################
