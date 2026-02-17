@@ -205,7 +205,7 @@ push-agent-container: migration-planner-agent-container quay-login
 push-containers: push-api-container push-agent-container
 
 deploy-on-openshift: oc
-	@openshift_base_url=$$(oc whoami --show-server | sed -E 's~https?://api\.~~; s~:[0-9]+/?$$~~'); \
+	@openshift_base_url="nargaman-cluster.apps.eco-engineering.lab.eng.tlv2.redhat.com"; \
 	openshift_project=$$(oc project -q); \
 	echo "*** Deploy Migration Planner on Openshift. Project: $${openshift_project}, Base URL: $${openshift_base_url} ***";\
 	oc process -f deploy/templates/postgres-template.yml | oc apply -f -; \
