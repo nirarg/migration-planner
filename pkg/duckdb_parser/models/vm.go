@@ -44,6 +44,7 @@ type VM struct {
 	OsDiskComplexity         int32    `json:"osDiskComplexity" db:"OsDiskComplexity"`
 	Concerns                 Concerns `json:"concerns"`
 	NumaNodeAffinity         []string `json:"numaNodeAffinity"` // Always empty for RVTools, included for OPA compatibility
+	MigrationExcluded        bool     `json:"migrationExcluded" db:"migration_excluded"`
 }
 
 // EffectiveGuestName returns the best available guest OS name.

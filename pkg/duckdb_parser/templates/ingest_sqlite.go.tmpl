@@ -25,7 +25,8 @@ INSERT INTO vinfo (
     "DNS Name", "Primary IP Address", "In Use MiB",
     "Template", "CBT", "EnableUUID",
     "Datacenter", "Cluster", "HW version",
-    "Total disk capacity MiB", "Provisioned MiB", "Resource pool", "VI SDK UUID"
+    "Total disk capacity MiB", "Provisioned MiB", "Resource pool", "VI SDK UUID",
+    "migration_excluded"
 )
 SELECT
     v.ID,
@@ -55,7 +56,8 @@ SELECT
     0,
     0,
     '',
-    about.InstanceUuid
+    about.InstanceUuid,
+    false
 FROM src.VM v
 LEFT JOIN src.Host h ON v.Host = h.ID
 LEFT JOIN src.Cluster c ON h.Cluster = c.ID

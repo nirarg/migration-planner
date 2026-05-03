@@ -88,7 +88,7 @@ var (
 		"FT State", "EnableUUID", "Folder", "DNS Name", "Primary IP Address",
 		"In Use MiB", "HW version", "Provisioned MiB", "Resource pool",
 		"OS according to the configuration file", "OS according to the VMware Tools",
-		"VM UUID", "Total disk capacity MiB",
+		"VM UUID", "Total disk capacity MiB", "migration_excluded",
 	}
 	vHostHeaders      = []string{"Datacenter", "Cluster", "# Cores", "# CPU", "Object ID", "# Memory", "Model", "Vendor", "Host", "Config status"}
 	vDatastoreHeaders = []string{"Hosts", "Address", "Name", "Object ID", "Free MiB", "MHA", "Capacity MiB", "Type"}
@@ -1265,4 +1265,53 @@ func TestPopulateComplexityQuery_IsDeterministic(t *testing.T) {
 	require.NoError(t, err1)
 	require.NoError(t, err2)
 	assert.Equal(t, sql1, sql2, "PopulateComplexityQuery output must be deterministic")
+}
+
+// TestVMs_MigrationExcluded verifies that the migration_excluded field:
+// 1. Defaults to false for RVTools-ingested VMs
+// 2. Can be updated via SQL and is properly returned in the VM model
+func TestVMs_MigrationExcluded(t *testing.T) {
+	parser, _, cleanup := setupTestParser(t, &testValidator{})
+	defer cleanup()
+
+	vms := []map[string]string{
+		{"VM": "vm-1", "VM ID": "vm-001", "VI SDK UUID": "uuid-1", "Host": "esxi-host-1", "CPUs": "4", "Memory": "8192", "Powerstate": "poweredOn", "Cluster": "cluster1", "Datacenter": "dc1"},
+		{"VM": "vm-2", "VM ID": "vm-002", "VI SDK UUID": "uuid-2", "Host": "esxi-host-1", "CPUs": "2", "Memory": "4096", "Powerstate": "poweredOn", "Cluster": "cluster1", "Datacenter": "dc1"},
+		{"VM": "vm-3", "VM ID": "vm-003", "VI SDK UUID": "uuid-3", "Host": "esxi-host-1", "CPUs": "2", "Memory": "4096", "Powerstate": "poweredOn", "Cluster": "cluster1", "Datacenter": "dc1"},
+	}
+	hosts := []map[string]string{
+		{"Datacenter": "dc1", "Cluster": "cluster1", "# Cores": "8", "# CPU": "2", "Object ID": "host-001", "# Memory": "32768", "Model": "ESXi", "Vendor": "VMware", "Host": "esxi-host-1", "Config status": "green"},
+	}
+
+	tmpFile := createTestExcel(t, defaultStandardSheets(vms, hosts)...)
+
+	ctx := context.Background()
+	_, err := parser.IngestRvTools(ctx, tmpFile)
+	require.NoError(t, err)
+
+	// Verify all VMs default to migration_excluded=false (RVTools behavior)
+	vmsOut, err := parser.VMs(ctx, Filters{}, Options{})
+	require.NoError(t, err)
+	require.Len(t, vmsOut, 3)
+
+	for _, vm := range vmsOut {
+		assert.False(t, vm.MigrationExcluded, "RVTools-ingested VMs should default to migration_excluded=false")
+	}
+
+	// Simulate agent updating exclusion status via SQL (how the agent will use this)
+	_, err = parser.db.ExecContext(ctx, `UPDATE vinfo SET "migration_excluded" = true WHERE "VM ID" = 'vm-001'`)
+	require.NoError(t, err)
+
+	// Verify the update is reflected in VM query
+	vmsOut, err = parser.VMs(ctx, Filters{}, Options{})
+	require.NoError(t, err)
+
+	vmMap := make(map[string]models.VM)
+	for _, vm := range vmsOut {
+		vmMap[vm.ID] = vm
+	}
+
+	assert.True(t, vmMap["vm-001"].MigrationExcluded, "Updated VM should have migration_excluded=true")
+	assert.False(t, vmMap["vm-002"].MigrationExcluded, "Non-updated VM should remain migration_excluded=false")
+	assert.False(t, vmMap["vm-003"].MigrationExcluded, "Non-updated VM should remain migration_excluded=false")
 }
