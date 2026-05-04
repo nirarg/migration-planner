@@ -25,7 +25,8 @@ WITH os_data AS (
             'Unknown OS'
         ) AS os_name
     FROM vinfo v
-    WHERE (
+    WHERE COALESCE(v."migration_excluded", false) = false
+      AND (
         (v."OS according to the VMware Tools" IS NOT NULL AND v."OS according to the VMware Tools" != '')
         OR
         (v."OS according to the configuration file" IS NOT NULL AND v."OS according to the configuration file" != '')
@@ -42,6 +43,7 @@ unsupported_os AS (
     FROM vinfo v
     JOIN concerns c ON v."VM ID" = c."VM_ID"
     WHERE c."Concern_ID" = 'vmware.os.unsupported'
+      AND COALESCE(v."migration_excluded", false) = false
     {{- if .ClusterFilter }} AND v."Cluster" = '{{.ClusterFilter}}'{{end}}
 ),
 upgrade_recommendations AS (
@@ -57,6 +59,7 @@ upgrade_recommendations AS (
     FROM vinfo v
     JOIN concerns c ON v."VM ID" = c."VM_ID"
     WHERE c."Concern_ID" = 'vmware.os.upgrade.recommendation'
+      AND COALESCE(v."migration_excluded", false) = false
     {{- if .ClusterFilter }} AND v."Cluster" = '{{.ClusterFilter}}'{{end}}
     GROUP BY 1
 )

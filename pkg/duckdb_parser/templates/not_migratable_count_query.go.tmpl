@@ -8,4 +8,5 @@ SELECT COUNT(DISTINCT i."VM ID")
 FROM vinfo i
 JOIN concerns c ON i."VM ID" = c."VM_ID" AND c."Category" = 'Critical'
 WHERE 1=1
+  AND COALESCE(i."migration_excluded", false) = false
 {{- if .ClusterFilter }} AND i."Cluster" = '{{.ClusterFilter}}'{{end}};

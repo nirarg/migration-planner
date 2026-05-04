@@ -21,6 +21,7 @@ WITH vm_concerns AS (
     FROM vinfo i
     LEFT JOIN concerns c ON i."VM ID" = c."VM_ID"
     WHERE 1=1
+      AND COALESCE(i."migration_excluded", false) = false
     {{- if .ClusterFilter }} AND i."Cluster" = '{{.ClusterFilter}}'{{end}}
     GROUP BY i."VM ID"
 ),
@@ -34,6 +35,7 @@ vm_resources AS (
     FROM vinfo i
     LEFT JOIN vm_concerns vc ON i."VM ID" = vc.vm_id
     WHERE 1=1
+      AND COALESCE(i."migration_excluded", false) = false
     {{- if .ClusterFilter }} AND i."Cluster" = '{{.ClusterFilter}}'{{end}}
 ),
 disk_resources AS (
@@ -44,6 +46,7 @@ disk_resources AS (
     FROM vdisk d
     JOIN vinfo i ON d."VM ID" = i."VM ID"
     WHERE 1=1
+      AND COALESCE(i."migration_excluded", false) = false
     {{- if .ClusterFilter }} AND i."Cluster" = '{{.ClusterFilter}}'{{end}}
     GROUP BY d."VM ID"
 ),
@@ -54,6 +57,7 @@ nic_resources AS (
     FROM vnetwork n
     JOIN vinfo i ON n."VM ID" = i."VM ID"
     WHERE 1=1
+      AND COALESCE(i."migration_excluded", false) = false
     {{- if .ClusterFilter }} AND i."Cluster" = '{{.ClusterFilter}}'{{end}}
     GROUP BY n."VM ID"
 ),

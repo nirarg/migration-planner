@@ -9,8 +9,8 @@ Template Parameters:
 */ -}}
 SELECT "Network" AS network, COUNT(*) AS count
 FROM vnetwork n
-{{- if .ClusterFilter }}
 JOIN vinfo i ON n."VM ID" = i."VM ID"
-WHERE i."Cluster" = '{{.ClusterFilter}}'
-{{- end}}
+WHERE 1=1
+  AND COALESCE(i."migration_excluded", false) = false
+{{- if .ClusterFilter }} AND i."Cluster" = '{{.ClusterFilter}}'{{- end}}
 GROUP BY "Network";

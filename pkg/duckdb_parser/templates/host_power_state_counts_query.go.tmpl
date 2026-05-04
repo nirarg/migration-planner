@@ -20,6 +20,7 @@ vinfo_fallback AS (
     SELECT 'unknown' AS state, COUNT(DISTINCT "Host") AS count
     FROM vinfo
     WHERE "Host" IS NOT NULL AND "Host" != ''
+      AND COALESCE("migration_excluded", false) = false
     {{- if .ClusterFilter }} AND "Cluster" = '{{.ClusterFilter}}'{{end}}
 )
 SELECT state, count FROM vhost_states

@@ -17,5 +17,6 @@ SELECT
     COUNT(*) AS count
 FROM vinfo
 WHERE 1=1
+  AND COALESCE("migration_excluded", false) = false
 {{- if .ClusterFilter }} AND "Cluster" = '{{.ClusterFilter}}'{{end}}
 GROUP BY tier;

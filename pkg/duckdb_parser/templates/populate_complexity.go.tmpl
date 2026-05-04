@@ -18,6 +18,7 @@ WITH vm_os AS (
             ''
         ) AS effective_os
     FROM vinfo
+    WHERE COALESCE("migration_excluded", false) = false
 ),
 vm_os_level AS (
     SELECT
@@ -34,6 +35,7 @@ vm_disk_totals AS (
         COALESCE(SUM(d."Capacity MiB"), 0) / 1048576.0 AS total_disk_tb
     FROM vinfo i
     LEFT JOIN vdisk d ON i."VM ID" = d."VM ID"
+    WHERE COALESCE(i."migration_excluded", false) = false
     GROUP BY i."VM ID"
 ),
 vm_disk_level AS (
