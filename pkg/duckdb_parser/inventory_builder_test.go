@@ -1315,3 +1315,69 @@ func TestVMs_MigrationExcluded(t *testing.T) {
 	assert.False(t, vmMap["vm-002"].MigrationExcluded, "Non-updated VM should remain migration_excluded=false")
 	assert.False(t, vmMap["vm-003"].MigrationExcluded, "Non-updated VM should remain migration_excluded=false")
 }
+
+// TestInventory_ExcludesMigrationExcludedVMs verifies that VMs marked with migration_excluded=true
+// are completely filtered out from all inventory aggregations.
+func TestInventory_ExcludesMigrationExcludedVMs(t *testing.T) {
+	parser, _, cleanup := setupTestParser(t, &testValidator{})
+	defer cleanup()
+
+	// Create 6 VMs with different characteristics
+	vms := []map[string]string{
+		// VMs to be included in inventory (migration_excluded=false)
+		{"VM": "included-1", "VM ID": "inc-001", "VI SDK UUID": "uuid-inc-1", "Host": "esxi-host-1", "CPUs": "4", "Memory": "8192", "Powerstate": "poweredOn", "Cluster": "cluster1", "Datacenter": "dc1", "OS according to the VMware Tools": "Red Hat Enterprise Linux 8 (64-bit)"},
+		{"VM": "included-2", "VM ID": "inc-002", "VI SDK UUID": "uuid-inc-2", "Host": "esxi-host-1", "CPUs": "2", "Memory": "4096", "Powerstate": "poweredOn", "Cluster": "cluster1", "Datacenter": "dc1", "OS according to the VMware Tools": "Red Hat Enterprise Linux 8 (64-bit)"},
+		{"VM": "included-3", "VM ID": "inc-003", "VI SDK UUID": "uuid-inc-3", "Host": "esxi-host-1", "CPUs": "8", "Memory": "16384", "Powerstate": "poweredOff", "Cluster": "cluster1", "Datacenter": "dc1", "OS according to the VMware Tools": "CentOS 7 (64-bit)"},
+
+		// VMs to be excluded from inventory (migration_excluded=true)
+		{"VM": "excluded-1", "VM ID": "exc-001", "VI SDK UUID": "uuid-exc-1", "Host": "esxi-host-1", "CPUs": "16", "Memory": "65536", "Powerstate": "poweredOn", "Cluster": "cluster1", "Datacenter": "dc1", "OS according to the VMware Tools": "Red Hat Enterprise Linux 8 (64-bit)"},
+		{"VM": "excluded-2", "VM ID": "exc-002", "VI SDK UUID": "uuid-exc-2", "Host": "esxi-host-1", "CPUs": "4", "Memory": "8192", "Powerstate": "poweredOn", "Cluster": "cluster1", "Datacenter": "dc1", "OS according to the VMware Tools": "Windows Server 2019 (64-bit)"},
+		{"VM": "excluded-3", "VM ID": "exc-003", "VI SDK UUID": "uuid-exc-3", "Host": "esxi-host-1", "CPUs": "2", "Memory": "2048", "Powerstate": "poweredOff", "Cluster": "cluster1", "Datacenter": "dc1", "OS according to the VMware Tools": "CentOS 7 (64-bit)"},
+	}
+	hosts := []map[string]string{
+		{"Datacenter": "dc1", "Cluster": "cluster1", "# Cores": "64", "# CPU": "4", "Object ID": "host-001", "# Memory": "262144", "Model": "ESXi", "Vendor": "VMware", "Host": "esxi-host-1", "Config status": "green"},
+	}
+
+	tmpFile := createTestExcel(t, defaultStandardSheets(vms, hosts)...)
+
+	ctx := context.Background()
+	_, err := parser.IngestRvTools(ctx, tmpFile)
+	require.NoError(t, err)
+
+	// Mark 3 VMs as migration_excluded
+	_, err = parser.db.ExecContext(ctx, `UPDATE vinfo SET "migration_excluded" = true WHERE "VM ID" IN ('exc-001', 'exc-002', 'exc-003')`)
+	require.NoError(t, err)
+
+	// Build inventory
+	inv, err := parser.BuildInventory(ctx)
+	require.NoError(t, err)
+
+	// Verify VM counts exclude the 3 excluded VMs
+	assert.Equal(t, 3, inv.VCenter.VMs.Total, "TotalVMs should only count non-excluded VMs")
+
+	// Verify power state counts exclude excluded VMs
+	assert.Equal(t, 2, inv.VCenter.VMs.PowerStates["poweredOn"], "poweredOn count should exclude excluded VMs")
+	assert.Equal(t, 1, inv.VCenter.VMs.PowerStates["poweredOff"], "poweredOff count should exclude excluded VMs")
+
+	// Verify OS distribution excludes excluded VMs
+	assert.Equal(t, 2, inv.VCenter.VMs.OSInfo["Red Hat Enterprise Linux 8 (64-bit)"].Count, "RHEL 8 count should exclude excluded VMs")
+	assert.Equal(t, 1, inv.VCenter.VMs.OSInfo["CentOS 7 (64-bit)"].Count, "CentOS 7 count should exclude excluded VMs")
+	assert.NotContains(t, inv.VCenter.VMs.OSInfo, "Windows Server 2019 (64-bit)", "Windows should not appear as all Windows VMs are excluded")
+
+	// Verify CPU tier distribution excludes excluded VMs
+	// Included VMs: included-1 (4 CPUs), included-2 (2 CPUs), included-3 (8 CPUs)
+	assert.Equal(t, 2, inv.VCenter.VMs.DistributionByCPUTier["0-4"], "CPU tier 0-4 should count 2 included VMs (2 and 4 CPUs)")
+	assert.Equal(t, 1, inv.VCenter.VMs.DistributionByCPUTier["5-8"], "CPU tier 5-8 should count 1 included VM (8 CPUs)")
+	assert.Equal(t, 0, inv.VCenter.VMs.DistributionByCPUTier["9-16"], "CPU tier 9-16 should be 0 as the only VM in this tier (16 CPUs) is excluded")
+
+	// Verify memory tier distribution excludes excluded VMs
+	// Included VMs: included-1 (8 GB), included-2 (4 GB), included-3 (16 GB)
+	assert.Equal(t, 1, inv.VCenter.VMs.DistributionByMemoryTier["0-4"], "Memory tier 0-4 should count 1 included VM (4 GB)")
+	assert.Equal(t, 2, inv.VCenter.VMs.DistributionByMemoryTier["5-16"], "Memory tier 5-16 should count 2 included VMs (8 GB and 16 GB)")
+	assert.Equal(t, 0, inv.VCenter.VMs.DistributionByMemoryTier["65-128"], "Memory tier 65-128 should be 0 as the only VM in this tier (64 GB) is excluded")
+
+	// Verify resource totals exclude excluded VMs
+	// Included VMs: 4 + 2 + 8 = 14 CPUs, 8 + 4 + 16 = 28 GB RAM
+	assert.Equal(t, 14, inv.VCenter.VMs.CPUCores.Total, "TotalCPUCores should exclude excluded VMs")
+	assert.Equal(t, 28, inv.VCenter.VMs.RamGB.Total, "TotalRAMGb should exclude excluded VMs")
+}

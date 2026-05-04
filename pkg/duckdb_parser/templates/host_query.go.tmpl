@@ -33,6 +33,7 @@ vinfo_fallback AS (
         'N/A' as "vendor"
     FROM vinfo
     WHERE "Host" IS NOT NULL AND "Host" != ''
+      AND COALESCE("migration_excluded", false) = false
     {{- if .ClusterFilter }} AND "Cluster" = '{{.ClusterFilter}}'{{end}}
 )
 SELECT "cluster", "cpuCores", "cpuSockets", "id", "memoryMB", "model", "vendor"

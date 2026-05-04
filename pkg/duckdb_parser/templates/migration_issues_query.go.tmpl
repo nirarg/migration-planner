@@ -17,5 +17,6 @@ SELECT
 FROM concerns c
 JOIN vinfo i ON c."VM_ID" = i."VM ID"
 WHERE c."Category" = '{{.Category}}'
+  AND COALESCE(i."migration_excluded", false) = false
 {{- if .ClusterFilter }} AND i."Cluster" = '{{.ClusterFilter}}'{{end}}
 GROUP BY c."Concern_ID";

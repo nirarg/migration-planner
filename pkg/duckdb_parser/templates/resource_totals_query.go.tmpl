@@ -22,4 +22,5 @@ LEFT JOIN (
     GROUP BY "VM ID"
 ) n ON i."VM ID" = n."VM ID"
 WHERE 1=1
+  AND COALESCE(i."migration_excluded", false) = false
 {{- if .ClusterFilter }} AND i."Cluster" = '{{.ClusterFilter}}'{{end}};
